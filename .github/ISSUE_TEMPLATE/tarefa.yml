@@ -1,0 +1,33 @@
+name: Tarefa backend
+description: Funcionalidade ou melhoria pequena
+title: "[Backend] "
+body:
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo
+      description: Qual problema esta tarefa resolve?
+    validations:
+      required: true
+  - type: textarea
+    id: escopo
+    attributes:
+      label: Escopo
+      description: Endpoints, regras e limites da alteração.
+    validations:
+      required: true
+  - type: textarea
+    id: aceite
+    attributes:
+      label: Critérios de aceite
+      description: Liste comportamentos verificáveis.
+      placeholder: "- [ ] Requisição válida retorna o resultado esperado."
+    validations:
+      required: true
+  - type: textarea
+    id: validacao
+    attributes:
+      label: Como validar
+      description: Cenários, testes e dependências.
+    validations:
+      required: true

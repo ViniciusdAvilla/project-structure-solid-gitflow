@@ -1,0 +1,86 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    name: Detectar aplicação
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      maven: ${{ steps.detect.outputs.maven }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Detectar projeto Maven
+        id: detect
+        shell: bash
+        run: |
+          if [ -f pom.xml ]; then
+            echo "maven=true" >> "$GITHUB_OUTPUT"
+            echo "### Aplicação Maven encontrada: build e testes serão executados." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "maven=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Backend ausente: adicione o pom.xml na raiz para executar build e testes."
+            echo "### Backend ausente — build e testes NÃO executados" >> "$GITHUB_STEP_SUMMARY"
+            echo "O repositório contém a base do processo. Este resultado não valida uma aplicação." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  build:
+    name: Build e testes
+    needs: detect
+    if: needs.detect.outputs.maven == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Compilar e testar
+        shell: bash
+        run: |
+          if [ -f mvnw ]; then
+            bash ./mvnw -B -ntp -DfailIfNoTests=true verify
+          else
+            mvn -B -ntp -DfailIfNoTests=true verify
+          fi
+      - name: Guardar relatórios de testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testes-${{ github.sha }}
+          path: |
+            **/target/surefire-reports/
+            **/target/failsafe-reports/
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Guardar JARs da main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-${{ github.sha }}
+          path: |
+            **/target/*.jar
+            !**/target/*-sources.jar
+            !**/target/*-javadoc.jar
+          if-no-files-found: warn
+          retention-days: 14

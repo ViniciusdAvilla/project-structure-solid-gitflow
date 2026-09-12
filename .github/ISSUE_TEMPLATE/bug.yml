@@ -1,0 +1,31 @@
+name: Bug backend
+description: Comportamento incorreto de uma API
+title: "[Bug] "
+body:
+  - type: textarea
+    id: reproducao
+    attributes:
+      label: Como reproduzir
+      description: Passos e requisição de exemplo sem tokens ou dados pessoais.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Resultado esperado e resultado atual
+    validations:
+      required: true
+  - type: input
+    id: ambiente
+    attributes:
+      label: Ambiente e versão
+      placeholder: "Homologação, commit ou versão"
+    validations:
+      required: true
+  - type: textarea
+    id: impacto
+    attributes:
+      label: Impacto
+      description: Quem é afetado e existe alguma alternativa?
+    validations:
+      required: true
